@@ -1,16 +1,16 @@
 import { Button, Form, Input, Select } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { addItem, editItem, saveStudentAsync } from "../../store/features/studentsSlice";
+import { editItem, saveStudentAsync } from "../../store/features/studentsSlice";
 import { selectById } from "../../store/selectors/studentsSelectors";
-import { useState } from "react";
-import { schema } from "../../validation/studentSchema";
+import { schema as studentSchema } from "../../validation/studentSchema";
 
 const createYupSync = (fieldName) => ({
   async validator(_, value) {
     try {
-      await schema.validateSyncAt(fieldName, { [fieldName]: value });
+      await studentSchema.validateSyncAt(fieldName, { [fieldName]: value });
     } catch (e) {
-      throw new Error(e.message);
+      // throw new Error(e.message);
+      return Promise.reject(e.message);
     }
   },
 });
@@ -20,18 +20,15 @@ export default function StudentsForm({ onSave, studentId }) {
 
   const currentStudent = useSelector(state => selectById(state, studentId));
 
-  const handleStudentSaveNew = values => {
-    // const id = Date.now();
-    const newStudent = { ...values };
-    // dispatch(addItem(newStudent));
-    dispatch(saveStudentAsync(newStudent));
+  const handleStudentSaveNew = (values) => {
+    dispatch(saveStudentAsync(values));
     onSave();
-  }
+  };
 
-  const handleStudentSaveEdit = values => {
-    dispatch(editItem({ ...values, id: courseId }));
+  const handleStudentSaveEdit = (values) => {
+    dispatch(editItem({ ...values, id: studentId }));
     onSave();
-  }
+  };
 
   return (
     <Form
@@ -43,12 +40,13 @@ export default function StudentsForm({ onSave, studentId }) {
       autoComplete="off"
       className="student-form"
     >
-      <h3>Create Student Form</h3>
+      <h3>{studentId ? "Edit Student" : "Create Student"}</h3>
+
       <Form.Item
         label="Fullname"
         name="fullname"
-        initialValue={studentId && currentStudent.fullname}
-        rules={[createYupSync('fullname')]}
+        initialValue={studentId ? currentStudent.fullname : undefined}
+        rules={[createYupSync("fullname")]}
       >
         <Input />
       </Form.Item>
@@ -56,8 +54,8 @@ export default function StudentsForm({ onSave, studentId }) {
       <Form.Item
         label="City"
         name="city"
-        initialValue={studentId && currentStudent.city}
-        rule={[{ required: false }]}
+        initialValue={studentId ? currentStudent.city : undefined}
+        rules={[]}
       >
         <Select>
           <Select.Option value="Kyiv">Kyiv</Select.Option>
@@ -66,7 +64,9 @@ export default function StudentsForm({ onSave, studentId }) {
         </Select>
       </Form.Item>
 
-      <Button type="primary" htmlType="submit">Save</Button>
+      <Button type="primary" htmlType="submit">
+        Save
+      </Button>
     </Form>
-  )
+  );
 }

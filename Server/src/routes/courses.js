@@ -34,7 +34,7 @@ router.put('/assign-student/:courseId', (req, res) => {
 
   const newStudentId = req.body.studentId;
   if (!newStudentId) {
-    return res.status(400).json({error: 'bad request'});
+    return res.status(400).json({ error: 'bad request' });
   }
 
   course.students.push(newStudentId);
@@ -48,6 +48,14 @@ router.put("/:id", (req, res) => {
   course.name = req.body.name || course.name;
   course.description = req.body.description || course.description;
   course.startDate = req.body.startDate || course.startDate;
+  res.json(course);
+});
+
+router.put('/unassign-student/:courseId', (req, res) => {
+  const course = courses.find(c => c.id === req.params.courseId);
+  if (!course) return res.status(404).json({ error: "Course not found" });
+  const { studentId } = req.body;
+  course.students = course.students.filter(id => id !== studentId);
   res.json(course);
 });
 

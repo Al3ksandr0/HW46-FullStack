@@ -1,6 +1,5 @@
 import {
   createAsyncThunk,
-  createEntityAdapter,
   createSlice,
 } from "@reduxjs/toolkit";
 
@@ -22,6 +21,36 @@ export const getCourse = createAsyncThunk("course/getCourse", async (id) => {
   return result;
 });
 
+export const assignStudentAsync = createAsyncThunk(
+  "course/assignStudentAsync",
+  async ({ courseId, studentId }) => {
+    const res = await fetch(
+      `${serverUrl}/courses/assign-student/${courseId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId }),
+      }
+    );
+    return res.json();
+  }
+);
+
+export const unassignStudentAsync = createAsyncThunk(
+  "course/unassignStudent",
+  async ({ courseId, studentId }) => {
+    const res = await fetch(
+      `${serverUrl}/courses/unassign-student/${courseId}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId }),
+      }
+    );
+    return res.json();
+  }
+);
+
 const courseSlice = createSlice({
   name: "course",
   initialState,
@@ -31,13 +60,19 @@ const courseSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(getCourse.fulfilled, (state, action) => {
-      // console.log(action);
-      state.course = { ...action.payload };
-    });
+    builder
+      .addCase(getCourse.fulfilled, (state, { payload }) => {
+        state.course = payload;
+      })
+      .addCase(assignStudentAsync.fulfilled, (state, { payload }) => {
+        state.course = payload;
+      })
+      .addCase(unassignStudentAsync.fulfilled, (state, { payload }) => {
+        state.course = payload;
+      });
   },
 });
 
-export const {assignStudent} = courseSlice.actions;
+export const { assignStudent } = courseSlice.actions;
 
 export default courseSlice.reducer;

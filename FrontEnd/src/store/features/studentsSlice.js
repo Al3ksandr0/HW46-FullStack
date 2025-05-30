@@ -19,32 +19,41 @@ export const saveStudentAsync = createAsyncThunk('students/saveStudent', async (
   return result;
 });
 
-export const getAllStudents = createAsyncThunk('students/getStudents', async() => {
+export const getAllStudents = createAsyncThunk('students/getStudents', async () => {
   const response = await fetch(`${serverUrl}/students`);
   const result = await response.json();
   return result;
 })
 
+export const deleteStudentAsync = createAsyncThunk(
+  "students/deleteStudent",
+  async (id) => {
+    await fetch(`${serverUrl}/students/${id}`, { method: "DELETE" });
+    return id;
+  }
+);
+
 const studentsSlice = createSlice({
   name: 'students',
   initialState,
   reducers: {
-    deleteItem: studentsAdapter.removeOne,
     addItem: studentsAdapter.addOne,
     editItem: studentsAdapter.upsertOne,
   },
   extraReducers: builder => {
-    builder.addCase(saveStudentAsync.fulfilled, (state, action) => {
-      console.log(action.payload);
-      studentsAdapter.addOne(state, action.payload);
-    });
-    builder.addCase(getAllStudents.fulfilled, (state, action) => {
-      // console.log(action);
-      studentsAdapter.addMany(state, action.payload);
-    });
-  }
+    builder
+      .addCase(saveStudentAsync.fulfilled, (state, { payload }) => {
+        studentsAdapter.addOne(state, payload);
+      })
+      .addCase(getAllStudents.fulfilled, (state, { payload }) => {
+        studentsAdapter.setAll(state, payload);
+      })
+      .addCase(deleteStudentAsync.fulfilled, (state, { payload }) => {
+        studentsAdapter.removeOne(state, payload);
+      });
+  },
 });
 
-export const {addItem, deleteItem, editItem} = studentsSlice.actions;
+export const { addItem, editItem } = studentsSlice.actions;
 
 export default studentsSlice.reducer;
